@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=timeLapse
+X-Python-2-Compatible=false
+X-Krita-Manual=TimeLapseManual.html
+Name=Krita Time Lapse
+Comment=Create a beautiful time lapse video of your drawing.
