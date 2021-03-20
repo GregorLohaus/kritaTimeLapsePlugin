@@ -184,7 +184,7 @@ class timeLapseDocker(DockWidget):
         })
         self.doc = Krita.instance().activeDocument()
         self.doc.setBatchmode(True)
-        self.timer.start(1000)
+        self.timer.start(self.fieldImageInterval.value()*1000)
 
     def stopRec(self):
         self.timer.stop()
