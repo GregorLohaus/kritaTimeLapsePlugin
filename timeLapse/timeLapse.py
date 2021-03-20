@@ -55,8 +55,8 @@ class timeLapseDocker(DockWidget):
 
     def __init__(self):
         super().__init__()
-        self.f = open("C:\\Users\\Gregor\\Pictures\\testingkritaplugin\\log.txt", "a")
-        self.f.write("\nplugin initialized")
+        #self.f = open("C:\\Users\\Gregor\\Pictures\\testingkritaplugin\\log.txt", "a")
+        #self.f.write("\nplugin initialized")
         self.recState = "notRecording"
         self.fieldPath = QLineEdit()
         self.fieldFFMPath = QLineEdit()
@@ -180,17 +180,17 @@ class timeLapseDocker(DockWidget):
     def startRec(self):
 
         if (self.recState == "notRecording"):
-            self.f.write('\ncalled startRec() recstate was notRecording')
+            #self.f.write('\ncalled startRec() recstate was notRecording')
             self.recState = "recording"
-            self.f.write('\nrecState set to recording')
+            #self.f.write('\nrecState set to recording')
             self.buttonStopRecording.setEnabled(True)
             self.setUiEnabled(False)
             self.buttonStartRecording.setText("Pause")
-            self.f.write('\n start button text set to pause')
+            #self.f.write('\n start button text set to pause')
             if not(os.path.isdir(self.fieldPath.text()+"\\"+self.fieldName.text())):
-                self.f.write('\n dir doesnt exist')
+                #self.f.write('\n dir doesnt exist')
                 os.mkdir(self.fieldPath.text()+"\\"+self.fieldName.text())
-                self.f.write('\n dir made')
+                #self.f.write('\n dir made')
             self.iO = krita.InfoObject()
             self.iO.setProperties({
                 "alpha":self.checkBoxAlpha.isChecked(),
@@ -203,37 +203,37 @@ class timeLapseDocker(DockWidget):
             self.doc = Krita.instance().activeDocument()
             self.doc.setBatchmode(True)
             self.timer.start(self.fieldImageInterval.value()*1000)
-            self.f.write('\n timer started with: '+str(self.fieldImageInterval.value()*1000))
+            #self.f.write('\n timer started with: '+str(self.fieldImageInterval.value()*1000))
 
         elif (self.recState == "pause"):
-            self.f.write('\n called startRec() recstate was pause ')
+            #self.f.write('\n called startRec() recstate was pause ')
             self.timer.start(self.fieldImageInterval.value()*1000)
-            self.f.write('\n timer started with: '+str(self.fieldImageInterval.value()*1000))
+            #self.f.write('\n timer started with: '+str(self.fieldImageInterval.value()*1000))
             self.buttonStartRecording.setText("Pause")
             self.buttonStopRecording.setEnabled(True)
             self.recState = "recording"
-            self.f.write('\n recstate set to recording')
+            #self.f.write('\n recstate set to recording')
         elif (self.recState == "recording"):
-            self.f.write('\n called startRec() recstate was recording ')
+            #self.f.write('\n called startRec() recstate was recording ')
             self.timer.stop()
-            self.f.write('\n timer stopped')
+            #self.f.write('\n timer stopped')
             self.buttonStartRecording.setText("Resume")
-            self.f.write('\n start button text set to resume')
+            #self.f.write('\n start button text set to resume')
             self.buttonStopRecording.setEnabled(False)
             self.recState = "pause"
-            self.f.write('\n recstate set to pause')
+            #self.f.write('\n recstate set to pause')
 
 
 
     def stopRec(self):
-        self.f.write('\n called stopRec()')
+        #self.f.write('\n called stopRec()')
         self.recState = "notRecording"
-        self.f.write('\n recstate set to notRecording')
+        #self.f.write('\n recstate set to notRecording')
         self.timer.stop()
-        self.f.write('\n timer stopped')
+        #self.f.write('\n timer stopped')
         self.saveImage()
         self.saveCounter = 0
-        self.f.write('\n counter reset to: '+ str(self.saveCounter))
+        #self.f.write('\n counter reset to: '+ str(self.saveCounter))
         self.buttonStartRecording.setEnabled(True)
         self.buttonStartRecording.setText("Start")
         self.buttonStopRecording.setEnabled(False)
@@ -262,9 +262,9 @@ class timeLapseDocker(DockWidget):
         self.fieldName.setEnabled(x)
 
     def saveImage(self):
-        self.f.write('\n saveImage() called')
+        #self.f.write('\n saveImage() called')
         counter = self.saveCounter
-        self.f.write('\n counter= '+ str(self.saveCounter))
+        #self.f.write('\n counter= '+ str(self.saveCounter))
         if (self.doc.exportImage(self.fieldPath.text()+"\\"+self.fieldName.text()+f"\\{counter}.png",self.iO)):
             self.saveCounter += 1
 
