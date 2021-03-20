@@ -20,11 +20,11 @@ if (aD.exportImage(path,iO)):
 """
 
 """
-__________________________
---- this makes krite crash
+_________________________________________________________________
+--- this makes krita crash
 --- new approach QTimer
 --- also look into exporting vs saving than loading and exporting
-__________________________
+_________________________________________________________________
 
 class WorkerThread(QThread):
     def run():
@@ -55,7 +55,6 @@ class timeLapseDocker(DockWidget):
 
     def __init__(self):
         super().__init__()
-        self.txtLog = open("C:\\Users\\Gregor\\Documents\\MyPythonLogs\\myLog.txt",'a')
         self.fieldPath = QLineEdit()
         self.fieldFFMPath = QLineEdit()
 
@@ -171,24 +170,45 @@ class timeLapseDocker(DockWidget):
 
 
     def startRec(self):
-        self.timer.start(1000)
         self.buttonStopRecording.setEnabled(True)
         self.buttonStartRecording.setEnabled(False)
+        self.setUiEnabled(False)
         self.iO = krita.InfoObject()
-        self.iO.setProperties({"alpha":True,"compression":5,"forceSRGB":False,"indexed":True,"interlaced":False,"saveSRGBProfile":False,"transparencyFillcolor":[255,255,255]})
+        self.iO.setProperties({
+            "alpha":self.checkBoxAlpha.isChecked(),
+            "compression":self.fieldCompression.value(),
+            "forceSRGB":self.checkBoxForceSRGB.isChecked(),
+            "indexed":True,"interlaced":self.checkBoxInterlaced.isChecked(),
+            "saveSRGBProfile":self.checkBoxSaveSRGBProfile.isChecked(),
+            "transparencyFillcolor":[self.RField.value(),self.GField.value(),self.BField.value()]
+        })
         self.doc = Krita.instance().activeDocument()
         self.doc.setBatchmode(True)
-
+        self.timer.start(1000)
 
     def stopRec(self):
         self.timer.stop()
         self.buttonStartRecording.setEnabled(True)
         self.buttonStopRecording.setEnabled(False)
+        self.setUiEnabled(True)
+
+    def setUiEnabled(x):
+        self.fieldFPS.setEnabled(x)
+        self.fieldPath.setEnabled(x)
+        self.fieldFFMPath.setEnabled(x)
+        self.fieldCompression.setEnabled(x)
+        self.fieldImageInterval.setEnabled(x)
+        self.BField.setEnabled(x)
+        self.GField.setEnabled(x)
+        self.RField.setEnabled(x)
+        self.checkBoxAlpha.setEnabled(x)
+        self.checkBoxForceSRGB.setEnabled(x)
+        self.checkBoxInterlaced.setEnabled(x)
+        self.checkBoxSaveSRGBProfile.setEnabled(x)
 
     def saveImage(self):
         counter = self.saveCounter
-        self.txtLog.write('\n'+f"C:\\Users\\Gregor\\Pictures\\testingkritaplugin\\{counter}.png")
-        if (self.doc.exportImage(f"C:\\Users\\Gregor\\Pictures\\testingkritaplugin\\{counter}.png",self.iO)):
+        if (self.doc.exportImage(self.fieldPath.text()+f"\\{counter}.png",self.iO)):
             self.saveCounter += 1
 
 
