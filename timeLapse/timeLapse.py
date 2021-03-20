@@ -3,7 +3,7 @@ from krita import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 import subprocess
-import time
+import os
 """
 import multiprocessing as mp
 from multiprocessing import Process, Pipe
@@ -55,21 +55,25 @@ class timeLapseDocker(DockWidget):
 
     def __init__(self):
         super().__init__()
+        self.f = open("C:\\Users\\Gregor\\Pictures\\testingkritaplugin\\log.txt", "a")
+        self.f.write("\nplugin initialized")
+        self.recState = "notRecording"
         self.fieldPath = QLineEdit()
         self.fieldFFMPath = QLineEdit()
+        self.fieldName = QLineEdit()
 
         self.setWindowTitle("Time Lapse")
-        mainWidget = QWidget(self)
+        self.mainWidget = QWidget(self)
         RGBWidget = QWidget(self)
-        self.setWidget(mainWidget)
+        self.setWidget(self.mainWidget)
         #vLayout = QVBoxLayout()
         hLayout = QHBoxLayout()
         gLayout = QGridLayout()
         #fLayout = QFormLayout()
-        mainWidget.setLayout(gLayout)
+        self.mainWidget.setLayout(gLayout)
         RGBWidget.setLayout(hLayout)
 
-        self.saveCounter = 0
+        self.saveCounter = 1
         self.timer = QTimer()
         self.timer.timeout.connect(self.saveImage)
 
@@ -96,13 +100,15 @@ class timeLapseDocker(DockWidget):
         self.fieldImageInterval.setPrefix("Take an image every  ")
         self.fieldImageInterval.setSuffix("  seconds")
 
-        rx = QRegExp("(C|D):\\\\([a-zA-Z]+\\\\*)*")
+        rx = QRegExp("(C|D):\\\\([a-zA-Z-\d._]+\\\\*)*")
         validator = QRegExpValidator(rx, self)
 
         self.PathLabel = QLabel("Path:  ")
         self.FFMPathLabel = QLabel("FFmpeg Path:")
         self.fieldPath.setValidator(validator)
         self.fieldFFMPath.setValidator(validator)
+        self.nameLabel = QLabel("Name: ")
+
 
         self.RGBLabel = QLabel("Transparency Fillcolor: ")
         self.RField = QSpinBox()
@@ -122,23 +128,25 @@ class timeLapseDocker(DockWidget):
         RGBWidget.layout().addWidget(self.GField)
         RGBWidget.layout().addWidget(self.BField)
 
-        mainWidget.layout().addWidget(self.fieldCompression,0,0)
-        mainWidget.layout().addWidget(self.fieldFPS,0,1)
-        mainWidget.layout().addWidget(self.fieldImageInterval,1,0,1,2)
-        mainWidget.layout().addWidget(RGBWidget,2,0,1,2)
+        self.mainWidget.layout().addWidget(self.fieldCompression,0,0)
+        self.mainWidget.layout().addWidget(self.fieldFPS,0,1)
+        self.mainWidget.layout().addWidget(self.fieldImageInterval,1,0,1,2)
+        self.mainWidget.layout().addWidget(RGBWidget,2,0,1,2)
 
-        mainWidget.layout().addWidget(self.checkBoxAlpha,3,0)
-        mainWidget.layout().addWidget(self.checkBoxForceSRGB,4,0)
-        mainWidget.layout().addWidget(self.checkBoxInterlaced,3,1)
-        mainWidget.layout().addWidget(self.checkBoxSaveSRGBProfile,4,1)
+        self.mainWidget.layout().addWidget(self.checkBoxAlpha,3,0)
+        self.mainWidget.layout().addWidget(self.checkBoxForceSRGB,4,0)
+        self.mainWidget.layout().addWidget(self.checkBoxInterlaced,3,1)
+        self.mainWidget.layout().addWidget(self.checkBoxSaveSRGBProfile,4,1)
 
-        mainWidget.layout().addWidget(self.buttonStartRecording,5,0,)
-        mainWidget.layout().addWidget(self.buttonStopRecording,5,1)
+        self.mainWidget.layout().addWidget(self.buttonStartRecording,5,0,)
+        self.mainWidget.layout().addWidget(self.buttonStopRecording,5,1)
 
-        mainWidget.layout().addWidget(self.PathLabel,6,0)
-        mainWidget.layout().addWidget(self.fieldPath,6,1)
-        mainWidget.layout().addWidget(self.FFMPathLabel,7,0)
-        mainWidget.layout().addWidget(self.fieldFFMPath,7,1)
+        self.mainWidget.layout().addWidget(self.PathLabel,6,0)
+        self.mainWidget.layout().addWidget(self.fieldPath,6,1)
+        self.mainWidget.layout().addWidget(self.nameLabel,7,0)
+        self.mainWidget.layout().addWidget(self.fieldName,7,1)
+        self.mainWidget.layout().addWidget(self.FFMPathLabel,8,0)
+        self.mainWidget.layout().addWidget(self.fieldFFMPath,8,1)
 
 
 
@@ -170,29 +178,75 @@ class timeLapseDocker(DockWidget):
 
 
     def startRec(self):
-        self.buttonStopRecording.setEnabled(True)
-        self.buttonStartRecording.setEnabled(False)
-        self.setUiEnabled(False)
-        self.iO = krita.InfoObject()
-        self.iO.setProperties({
-            "alpha":self.checkBoxAlpha.isChecked(),
-            "compression":self.fieldCompression.value(),
-            "forceSRGB":self.checkBoxForceSRGB.isChecked(),
-            "indexed":True,"interlaced":self.checkBoxInterlaced.isChecked(),
-            "saveSRGBProfile":self.checkBoxSaveSRGBProfile.isChecked(),
-            "transparencyFillcolor":[self.RField.value(),self.GField.value(),self.BField.value()]
-        })
-        self.doc = Krita.instance().activeDocument()
-        self.doc.setBatchmode(True)
-        self.timer.start(self.fieldImageInterval.value()*1000)
+
+        if (self.recState == "notRecording"):
+            self.f.write('\ncalled startRec() recstate was notRecording')
+            self.recState = "recording"
+            self.f.write('\nrecState set to recording')
+            self.buttonStopRecording.setEnabled(True)
+            self.setUiEnabled(False)
+            self.buttonStartRecording.setText("Pause")
+            self.f.write('\n start button text set to pause')
+            if not(os.path.isdir(self.fieldPath.text()+"\\"+self.fieldName.text())):
+                self.f.write('\n dir doesnt exist')
+                os.mkdir(self.fieldPath.text()+"\\"+self.fieldName.text())
+                self.f.write('\n dir made')
+            self.iO = krita.InfoObject()
+            self.iO.setProperties({
+                "alpha":self.checkBoxAlpha.isChecked(),
+                "compression":self.fieldCompression.value(),
+                "forceSRGB":self.checkBoxForceSRGB.isChecked(),
+                "indexed":True,"interlaced":self.checkBoxInterlaced.isChecked(),
+                "saveSRGBProfile":self.checkBoxSaveSRGBProfile.isChecked(),
+                "transparencyFillcolor":[self.RField.value(),self.GField.value(),self.BField.value()]
+            })
+            self.doc = Krita.instance().activeDocument()
+            self.doc.setBatchmode(True)
+            self.timer.start(self.fieldImageInterval.value()*1000)
+            self.f.write('\n timer started with: '+str(self.fieldImageInterval.value()*1000))
+
+        elif (self.recState == "pause"):
+            self.f.write('\n called startRec() recstate was pause ')
+            self.timer.start(self.fieldImageInterval.value()*1000)
+            self.f.write('\n timer started with: '+str(self.fieldImageInterval.value()*1000))
+            self.buttonStartRecording.setText("Pause")
+            self.buttonStopRecording.setEnabled(True)
+            self.recState = "recording"
+            self.f.write('\n recstate set to recording')
+        elif (self.recState == "recording"):
+            self.f.write('\n called startRec() recstate was recording ')
+            self.timer.stop()
+            self.f.write('\n timer stopped')
+            self.buttonStartRecording.setText("Resume")
+            self.f.write('\n start button text set to resume')
+            self.buttonStopRecording.setEnabled(False)
+            self.recState = "pause"
+            self.f.write('\n recstate set to pause')
+
+
 
     def stopRec(self):
+        self.f.write('\n called stopRec()')
+        self.recState = "notRecording"
+        self.f.write('\n recstate set to notRecording')
         self.timer.stop()
+        self.f.write('\n timer stopped')
+        self.saveImage()
+        self.saveCounter = 0
+        self.f.write('\n counter reset to: '+ str(self.saveCounter))
         self.buttonStartRecording.setEnabled(True)
+        self.buttonStartRecording.setText("Start")
         self.buttonStopRecording.setEnabled(False)
         self.setUiEnabled(True)
+        ffmpegpath = self.fieldFFMPath.text()
+        framerate = str(self.fieldFPS.value())
+        width = str(self.doc.width())
+        height = str(self.doc.height())
+        path = self.fieldPath.text()
+        name = self.fieldName.text()
+        subprocess.run(f"{ffmpegpath}\\ffmpeg.exe -r {framerate} -f image2 -s {width}x{height} -i {path}\\{name}\%d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p {path}\\{name}\\_TimeLapse.mp4")
 
-    def setUiEnabled(x):
+    def setUiEnabled(self, x: bool ):
         self.fieldFPS.setEnabled(x)
         self.fieldPath.setEnabled(x)
         self.fieldFFMPath.setEnabled(x)
@@ -205,10 +259,13 @@ class timeLapseDocker(DockWidget):
         self.checkBoxForceSRGB.setEnabled(x)
         self.checkBoxInterlaced.setEnabled(x)
         self.checkBoxSaveSRGBProfile.setEnabled(x)
+        self.fieldName.setEnabled(x)
 
     def saveImage(self):
+        self.f.write('\n saveImage() called')
         counter = self.saveCounter
-        if (self.doc.exportImage(self.fieldPath.text()+f"\\{counter}.png",self.iO)):
+        self.f.write('\n counter= '+ str(self.saveCounter))
+        if (self.doc.exportImage(self.fieldPath.text()+"\\"+self.fieldName.text()+f"\\{counter}.png",self.iO)):
             self.saveCounter += 1
 
 
