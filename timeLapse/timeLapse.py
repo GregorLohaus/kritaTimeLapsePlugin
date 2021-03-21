@@ -100,7 +100,7 @@ class timeLapseDocker(DockWidget):
         self.fieldImageInterval.setPrefix("Take an image every  ")
         self.fieldImageInterval.setSuffix("  seconds")
 
-        rx = QRegExp("(C|D):\\\\([a-zA-Z-\d._]+\\\\*)*")
+        rx = QRegExp("(C|D):\\\\([a-zA-Z-\d._ ]+\\\\*)*")
         validator = QRegExpValidator(rx, self)
 
         self.PathLabel = QLabel("Path:  ")
